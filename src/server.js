@@ -33,11 +33,22 @@ app.post('/api/compile', async (req, res) => {
     result.diagnostics.executionReport = execReport;
     result.diagnostics.costs = getCostReport();
 
-    if (result.success && execReport.passed) {
-      const html = AppGenerator.generateHTML(result.schemas);
-      const appId = require('crypto').randomUUID();
-      generatedApps.set(appId, html);
-      result.appPreviewUrl = `/api/preview/${appId}`;
+    // Ensure schemas have safe defaults if LLM truncated them
+    result.schemas.ui = result.schemas.ui || { pages: [], navigation: { items: [] } };
+    result.schemas.api = result.schemas.api || { endpoints: [] };
+    result.schemas.db = result.schemas.db || { tables: [] };
+    result.schemas.auth = result.schemas.auth || { roles: [], guards: [] };
+
+    // Always generate preview to show the user *something*, even if partial
+    if (result.success) {
+      try {
+        const html = AppGenerator.generateHTML(result.schemas);
+        const appId = require('crypto').randomUUID();
+        generatedApps.set(appId, html);
+        result.appPreviewUrl = `/api/preview/${appId}`;
+      } catch (e) {
+        console.error("Failed to generate HTML preview:", e);
+      }
     }
 
     // Store for mid-way modifications
@@ -147,11 +158,22 @@ app.get('/api/compile/stream', (req, res) => {
     result.diagnostics.executionReport = execReport;
     result.diagnostics.costs = getCostReport();
 
-    if (result.success && execReport.passed) {
-      const html = AppGenerator.generateHTML(result.schemas);
-      const appId = require('crypto').randomUUID();
-      generatedApps.set(appId, html);
-      result.appPreviewUrl = `/api/preview/${appId}`;
+    // Ensure schemas have safe defaults
+    result.schemas.ui = result.schemas.ui || { pages: [], navigation: { items: [] } };
+    result.schemas.api = result.schemas.api || { endpoints: [] };
+    result.schemas.db = result.schemas.db || { tables: [] };
+    result.schemas.auth = result.schemas.auth || { roles: [], guards: [] };
+
+    // Always generate preview
+    if (result.success) {
+      try {
+        const html = AppGenerator.generateHTML(result.schemas);
+        const appId = require('crypto').randomUUID();
+        generatedApps.set(appId, html);
+        result.appPreviewUrl = `/api/preview/${appId}`;
+      } catch (e) {
+        console.error("Failed to generate HTML preview:", e);
+      }
     }
 
     // Store session
