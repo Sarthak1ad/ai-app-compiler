@@ -5,8 +5,8 @@ const Pipeline = require('./pipeline');
 const AppGenerator = require('./runtime/app-generator');
 const ExecutionValidator = require('./runtime/execution-validator');
 const { getCostReport, resetCostTracking } = require('./utils/cost-tracker');
-const Groq = require('groq-sdk');
 const { trackCost } = require('./utils/cost-tracker');
+const { callGroqWithRetry } = require('./utils/groq-client');
 
 dotenv.config();
 
@@ -66,8 +66,6 @@ app.post('/api/refine', async (req, res) => {
   }
 
   try {
-    const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
-
     const systemPrompt = `You are the Schema Modification Engine for an AI App Compiler.
 The user previously generated schemas for an app. Now they want to MODIFY the requirements.
 
@@ -83,18 +81,9 @@ Keep everything that wasn't mentioned in the modification unchanged.
 Return the FULL updated schemas as valid JSON:
 { "ui": {...}, "api": {...}, "db": {...}, "auth": {...} }`;
 
-    const chatCompletion = await groq.chat.completions.create({
-      messages: [
-        { role: "user", content: systemPrompt }
-      ],
-      model: "llama-3.1-8b-instant",
-      temperature: 0.1,
-      response_format: { type: "json_object" }
-    });
-
-    const responseText = chatCompletion.choices[0]?.message?.content || "{}";
-    const usage = chatCompletion.usage || { prompt_tokens: 0, completion_tokens: 0 };
-    trackCost('llama-3.1-8b-instant', { prompt: usage.prompt_tokens, completion: usage.completion_tokens });
+    const responseText = await callGroqWithRetry([
+      { role: "user", content: systemPrompt }
+    ], "llama-3.1-8b-instant");
 
     const updatedSchemas = JSON.parse(responseText);
 

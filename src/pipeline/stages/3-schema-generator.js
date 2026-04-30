@@ -1,12 +1,9 @@
-const Groq = require('groq-sdk');
-const { trackCost } = require('../../utils/cost-tracker');
+const { callGroqWithRetry } = require('../../utils/groq-client');
 const fs = require('fs');
 const path = require('path');
 
 class SchemaGenerator {
   static async generate(designIR) {
-    const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
-    
     // Load JSON schemas for constraints
     const uiSchemaDef = fs.readFileSync(path.join(__dirname, '../../schemas/ui-schema.json'), 'utf8');
     const apiSchemaDef = fs.readFileSync(path.join(__dirname, '../../schemas/api-schema.json'), 'utf8');
@@ -36,19 +33,10 @@ DB: ${dbSchemaDef}
 Auth: ${authSchemaDef}
 `;
 
-    const chatCompletion = await groq.chat.completions.create({
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: `System Design IR:\n${JSON.stringify(designIR)}` }
-      ],
-      model: "llama-3.1-8b-instant",
-      temperature: 0.1,
-      response_format: { type: "json_object" }
-    });
-
-    const responseText = chatCompletion.choices[0]?.message?.content || "{}";
-    const usage = chatCompletion.usage || { prompt_tokens: 0, completion_tokens: 0 };
-    trackCost('llama-3.1-8b-instant', { prompt: usage.prompt_tokens, completion: usage.completion_tokens });
+    const responseText = await callGroqWithRetry([
+      { role: "system", content: systemPrompt },
+      { role: "user", content: `System Design IR:\n${JSON.stringify(designIR)}` }
+    ], "llama-3.1-8b-instant");
     
     try {
       return JSON.parse(responseText);

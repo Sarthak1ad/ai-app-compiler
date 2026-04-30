@@ -1,5 +1,4 @@
-const Groq = require('groq-sdk');
-const { trackCost } = require('../../utils/cost-tracker');
+const { callGroqWithRetry } = require('../../utils/groq-client');
 
 class IntentExtractor {
   static async extract(prompt) {
@@ -28,19 +27,10 @@ Return ONLY valid JSON matching this structure:
   "conflicts": ["string - any contradictions detected in the prompt"]
 }`;
 
-    const chatCompletion = await groq.chat.completions.create({
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: prompt }
-      ],
-      model: "llama-3.1-8b-instant",
-      temperature: 0.1,
-      response_format: { type: "json_object" }
-    });
-
-    const responseText = chatCompletion.choices[0]?.message?.content || "{}";
-    const usage = chatCompletion.usage || { prompt_tokens: 0, completion_tokens: 0 };
-    trackCost('llama-3.1-8b-instant', { prompt: usage.prompt_tokens, completion: usage.completion_tokens });
+    const responseText = await callGroqWithRetry([
+      { role: "system", content: systemPrompt },
+      { role: "user", content: prompt }
+    ], "llama-3.1-8b-instant");
     
     try {
       const parsed = JSON.parse(responseText);
