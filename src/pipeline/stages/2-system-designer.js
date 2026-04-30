@@ -2,8 +2,6 @@ const { callGroqWithRetry } = require('../../utils/groq-client');
 
 class SystemDesigner {
   static async design(intentIR) {
-    const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
-    
     const systemPrompt = `You are the System Design stage of an AI App Compiler.
 Convert the provided Intent Intermediate Representation (IR) into a detailed Application Architecture Design.
 Define entity relationships, primary pages/flows, and map roles to general capabilities.

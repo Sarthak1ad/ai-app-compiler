@@ -2,8 +2,6 @@ const { callGroqWithRetry } = require('../../utils/groq-client');
 
 class IntentExtractor {
   static async extract(prompt) {
-    const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
-    
     const systemPrompt = `You are the Intent Extraction stage of an AI App Compiler.
 Your job is to parse open-ended user requirements into a structured Intermediate Representation (IR).
 
