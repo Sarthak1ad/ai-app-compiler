@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI App Compiler</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <i class="fa-solid fa-layer-group"></i> AI Compiler
+            </div>
+            <nav class="nav-menu">
+                <a href="#" class="nav-item active"><i class="fa-solid fa-wand-magic-sparkles"></i> Builder</a>
+                <a href="#" class="nav-item"><i class="fa-solid fa-chart-line"></i> Evaluation</a>
+                <a href="#" class="nav-item"><i class="fa-solid fa-gear"></i> Settings</a>
+            </nav>
+            <div class="system-status">
+                <div class="status-indicator online"></div>
+                <span>Systems Online</span>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="topbar">
+                <h1>App Builder Studio</h1>
+                <div class="actions">
+                    <button class="btn btn-secondary"><i class="fa-solid fa-book"></i> Documentation</button>
+                    <button class="btn btn-primary" id="demo-btn">Load Demo Prompt</button>
+                </div>
+            </header>
+
+            <div class="builder-layout">
+                <!-- Left Panel: Input & Pipeline -->
+                <div class="left-panel">
+                    <div class="card glass-card input-section">
+                        <h2><i class="fa-solid fa-terminal"></i> Describe your app</h2>
+                        <textarea id="prompt-input"
+                            placeholder="e.g. Build a CRM with login, contacts, dashboard, role-based access, and premium plan with payments. Admins can see analytics."></textarea>
+                        <button id="compile-btn" class="btn btn-primary btn-large">
+                            <i class="fa-solid fa-bolt"></i> Compile App
+                        </button>
+                    </div>
+
+                    <!-- Mid-way Modification Panel -->
+                    <div class="card glass-card input-section" id="modify-section" style="display: none;">
+                        <h2><i class="fa-solid fa-pen-to-square"></i> Modify Requirements</h2>
+                        <textarea id="modify-input"
+                            placeholder='e.g. "Add a notifications page" or "Remove the payment system" or "Make it admin-only"'
+                            style="min-height: 60px;"></textarea>
+                        <button id="modify-btn" class="btn btn-primary btn-large" style="background: linear-gradient(135deg, #f59e0b, #ef4444);">
+                            <i class="fa-solid fa-arrows-rotate"></i> Apply Modification
+                        </button>
+                    </div>
+
+                    <div class="card glass-card pipeline-section">
+                        <h2><i class="fa-solid fa-server"></i> Compilation Pipeline</h2>
+                        <div class="pipeline-stages" id="pipeline-stages">
+                            <div class="stage pending" id="stage-intent">
+                                <div class="stage-icon"><i class="fa-solid fa-brain"></i></div>
+                                <div class="stage-content">
+                                    <div class="stage-title">Intent Extraction</div>
+                                    <div class="stage-desc">Parsing prompt to IR</div>
+                                </div>
+                                <div class="stage-status"><i class="fa-solid fa-circle-notch"></i></div>
+                            </div>
+                            <div class="stage pending" id="stage-design">
+                                <div class="stage-icon"><i class="fa-solid fa-sitemap"></i></div>
+                                <div class="stage-content">
+                                    <div class="stage-title">System Design</div>
+                                    <div class="stage-desc">Architecting entities & flows</div>
+                                </div>
+                                <div class="stage-status"><i class="fa-solid fa-circle-notch"></i></div>
+                            </div>
+                            <div class="stage pending" id="stage-schema">
+                                <div class="stage-icon"><i class="fa-solid fa-database"></i></div>
+                                <div class="stage-content">
+                                    <div class="stage-title">Schema Generation</div>
+                                    <div class="stage-desc">Creating strict definitions</div>
+                                </div>
+                                <div class="stage-status"><i class="fa-solid fa-circle-notch"></i></div>
+                            </div>
+                            <div class="stage pending" id="stage-refine">
+                                <div class="stage-icon"><i class="fa-solid fa-wrench"></i></div>
+                                <div class="stage-content">
+                                    <div class="stage-title">Validation & Repair</div>
+                                    <div class="stage-desc">Cross-layer consistency</div>
+                                </div>
+                                <div class="stage-status"><i class="fa-solid fa-circle-notch"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Panel: Output & Preview -->
+                <div class="right-panel">
+                    <div class="card glass-card output-section">
+                        <div class="tabs">
+                            <button class="tab-btn active" data-tab="preview">Preview</button>
+                            <button class="tab-btn" data-tab="ui-schema">UI</button>
+                            <button class="tab-btn" data-tab="api-schema">API</button>
+                            <button class="tab-btn" data-tab="db-schema">DB</button>
+                            <button class="tab-btn" data-tab="auth-schema">Auth</button>
+                            <button class="tab-btn" data-tab="diagnostics">Diagnostics</button>
+                        </div>
+
+                        <div class="tab-content-container">
+                            <!-- Preview Tab -->
+                            <div id="tab-preview" class="tab-content active">
+                                <div class="preview-empty" id="preview-empty">
+                                    <i class="fa-solid fa-laptop-code"></i>
+                                    <p>Your generated app will appear here.</p>
+                                </div>
+                                <iframe id="app-preview-frame" style="display: none;"></iframe>
+                            </div>
+
+                            <!-- JSON Schema Tabs -->
+                            <div id="tab-ui-schema" class="tab-content json-view">
+                                <pre><code id="code-ui">{}</code></pre>
+                            </div>
+                            <div id="tab-api-schema" class="tab-content json-view">
+                                <pre><code id="code-api">{}</code></pre>
+                            </div>
+                            <div id="tab-db-schema" class="tab-content json-view">
+                                <pre><code id="code-db">{}</code></pre>
+                            </div>
+                            <div id="tab-auth-schema" class="tab-content json-view">
+                                <pre><code id="code-auth">{}</code></pre>
+                            </div>
+
+                            <!-- Diagnostics Tab -->
+                            <div id="tab-diagnostics" class="tab-content">
+                                <div class="diagnostics-panel" id="diagnostics-content">
+                                    <p class="text-muted">No diagnostic data yet.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>
