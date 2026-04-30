@@ -109,15 +109,23 @@ Return the FULL updated schemas as valid JSON:
       Object.assign(updatedSchemas, repairResult.repairedSchemas);
     }
 
+    // Ensure schemas have safe defaults if LLM truncated them during modification
+    updatedSchemas.ui = updatedSchemas.ui || { pages: [], navigation: { items: [] } };
+    updatedSchemas.api = updatedSchemas.api || { endpoints: [] };
+    updatedSchemas.db = updatedSchemas.db || { tables: [] };
+    updatedSchemas.auth = updatedSchemas.auth || { roles: [], guards: [] };
+
     const execReport = ExecutionValidator.validate(updatedSchemas);
     
-    // Generate new preview
+    // Always generate new preview, even if execution validator fails (partial build)
     let appPreviewUrl = null;
-    if (execReport.passed) {
+    try {
       const html = AppGenerator.generateHTML(updatedSchemas);
       const appId = require('crypto').randomUUID();
       generatedApps.set(appId, html);
       appPreviewUrl = `/api/preview/${appId}`;
+    } catch (e) {
+      console.error("Failed to generate HTML preview during refinement:", e);
     }
 
     // Update session

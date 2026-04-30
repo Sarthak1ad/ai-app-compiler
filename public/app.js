@@ -151,8 +151,10 @@ document.addEventListener('DOMContentLoaded', () => {
         Object.keys(stages).forEach(k => updateStage(k, 'done'));
 
         // Render Code Views with basic syntax highlighting approach
-        const formatJSON = (obj) => JSON.stringify(obj, null, 2)
-            .replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+        const formatJSON = (obj) => {
+            const str = JSON.stringify(obj || {}, null, 2);
+            if (!str) return '{}';
+            return str.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
                 let cls = 'color: #e5c07b;'; // number
                 if (/^"/.test(match)) {
                     if (/:$/.test(match)) {
@@ -167,6 +169,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 return '<span style="' + cls + '">' + match + '</span>';
             });
+        };
 
         codeViews.ui.innerHTML = formatJSON(result.schemas.ui);
         codeViews.api.innerHTML = formatJSON(result.schemas.api);
@@ -255,14 +258,17 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await response.json();
 
             if (data.success && data.schemas) {
-                const formatJSON = (obj) => JSON.stringify(obj, null, 2)
-                    .replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+                const formatJSON = (obj) => {
+                    const str = JSON.stringify(obj || {}, null, 2);
+                    if (!str) return '{}';
+                    return str.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
                         let cls = 'color: #e5c07b;';
                         if (/^"/.test(match)) { cls = /:$/.test(match) ? 'color: #e06c75;' : 'color: #98c379;'; }
                         else if (/true|false/.test(match)) { cls = 'color: #d19a66;'; }
                         else if (/null/.test(match)) { cls = 'color: #56b6c2;'; }
                         return '<span style="' + cls + '">' + match + '</span>';
                     });
+                };
 
                 codeViews.ui.innerHTML = formatJSON(data.schemas.ui);
                 codeViews.api.innerHTML = formatJSON(data.schemas.api);
