@@ -161,15 +161,7 @@ cp .env.example .env
 npm run dev
 ```
 
-### Usage
-1. Open `http://localhost:3000`
-2. Enter a prompt (or click "Load Demo Prompt")
-3. Click "Compile App"
-4. Watch the pipeline progress in real-time (SSE)
-5. View generated schemas (UI/API/DB/Auth tabs)
-6. See the working app in the Preview tab
 
----
 
 ## 📁 Project Structure
 
